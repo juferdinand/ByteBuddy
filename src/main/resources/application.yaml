@@ -1,0 +1,29 @@
+spring:
+  jpa:
+    show-sql: off
+    generate-ddl: off
+    hibernate:
+      ddl-auto: validate
+      transaction:
+        jta:
+          platform: org.hibernate.engine.transaction.jta.platform.internal.BitronixJtaPlatform
+      #ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: tables
+    open-in-view: false
+  datasource:
+    url:
+    username:
+    password:
+    driver-class-name: org.postgresql.Driver
+
+aluna:
+  discord:
+    token:
+    application-id:
+logging:
+  level:
+    io.viascom.discord.bot.aluna: DEBUG
+    io.viascom.discord.bot.aluna.event.EventPublisher: INFO #Set to DEBUG to show all published events
+    io.viascom.discord.bot.aluna.bot.handler.AlunaLocalizationFunction: INFO #Set to DEBUG to show translation keys for interactions
