@@ -1,7 +1,6 @@
-package de.gaming.discord.bytebuddy.commands
+package de.gaming.discord.bytebuddy.commands.games
 
 import de.gaming.discord.bytebuddy.commands.util.CommandUtil
-import de.gaming.discord.bytebuddy.database.entity.DiscordUser
 import de.gaming.discord.bytebuddy.database.entity.Game
 import de.gaming.discord.bytebuddy.database.repos.DiscordUserRepository
 import de.gaming.discord.bytebuddy.database.repos.GameRepository
@@ -25,7 +24,12 @@ class AddGameCommand(
     }
 
     override fun execute(event: SlashCommandInteractionEvent) {
-        val discordUser = CommandUtil.getOrCreateAndGetDiscordUser(discordUserRepository, event.user)
+
+        val discordUser = CommandUtil.getOrCreateAndGetDiscordUser(
+            discordUserRepository,
+            event.user,
+            event.member!!
+        )
         if (gameRepository.existsByGameName(event.getOption("name")?.asString)) {
             event.reply("Das Spiel ${event.getOption("name")?.asString} ist bereits in der Liste").complete()
             return

@@ -21,13 +21,15 @@ class VotingFinishedEvent(
 
     @Scheduled(cron = "0 * * * * ?")
     fun onVotingFinished() {
-        val votings = votingRepository.findAllByVotingTimeIsInPast()
+        val votings = votingRepository.findAllByVotingTimeIsInPastAndIsCompletedFalse()
         for (voting in votings) {
             val channel =
                 shardManager.shards[0].guilds[0].getTextChannelById(voting.targetChannelId)
                     ?: continue
             channel.editMessageEmbedsById(voting.votingMessageId, createVotingFinishedEmbed(voting))
                 .queue()
+            voting.isCompleted = true
+            votingRepository.save(voting)
         }
     }
 

@@ -1,4 +1,4 @@
-package de.gaming.discord.bytebuddy.commands
+package de.gaming.discord.bytebuddy.commands.games
 
 import de.gaming.discord.bytebuddy.database.entity.Game
 import de.gaming.discord.bytebuddy.database.repos.GameRepository
@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import java.awt.Color
-import java.time.Instant
 
 @Interaction
 class ListGameCommand(private val gameRepository: GameRepository) :

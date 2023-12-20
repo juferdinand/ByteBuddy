@@ -5,6 +5,7 @@ import de.gaming.discord.bytebuddy.database.entity.GameVoting
 import de.gaming.discord.bytebuddy.database.entity.Voting
 import de.gaming.discord.bytebuddy.database.repos.DiscordUserRepository
 import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.User
 import java.text.SimpleDateFormat
@@ -15,14 +16,29 @@ class CommandUtil {
     companion object {
         fun getOrCreateAndGetDiscordUser(
             discordUserRepository: DiscordUserRepository,
-            user: User
+            user: User,
+            member: Member,
+            withGames: Boolean = false
         ): DiscordUser {
-            var discordUser = discordUserRepository.findDiscordUserByDiscordUserId(user.idLong)
+            var discordUser = if (withGames) {
+                discordUserRepository.findDiscordUserAndLeftJoinFetchGames(user.idLong)
+            } else {
+                discordUserRepository.findDiscordUserByDiscordUserId(user.idLong)
+            }
             if (discordUser == null) {
                 discordUser = DiscordUser()
                 discordUser.discordUserId = user.idLong
                 discordUser.discordUserName = user.name
                 discordUser.avatarUrl = user.avatarUrl?:"https://i.imgur.com/Euv3KE5.png"
+                discordUserRepository.save(discordUser)
+                return discordUser
+            }
+            if (discordUser.avatarUrl != user.avatarUrl) {
+                discordUser.avatarUrl = user.avatarUrl ?: "https://i.imgur.com/Euv3KE5.png"
+                discordUserRepository.save(discordUser)
+            }
+            if (discordUser.joinedAt == null) {
+                discordUser.joinedAt = member.timeJoined.toInstant()
                 discordUserRepository.save(discordUser)
             }
             return discordUser

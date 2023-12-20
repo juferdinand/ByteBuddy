@@ -1,4 +1,4 @@
-package de.gaming.discord.bytebuddy.commands
+package de.gaming.discord.bytebuddy.commands.voting
 
 import de.gaming.discord.bytebuddy.commands.util.CommandUtil
 import de.gaming.discord.bytebuddy.database.entity.GameVoting
@@ -35,6 +35,7 @@ class VoteCommand(
 ) {
 
     var votingId: Int = 0
+    val votings = votingRepository.findAllByVotingTimeIsNotInPast()
     override fun initCommandOptions() {
         this.addOption(
             OptionType.STRING,
@@ -73,8 +74,10 @@ class VoteCommand(
         when (option) {
             "voting" -> {
                 event.replyStringChoices(
-                    votingRepository.findAllByVotingTimeIsNotInPast().stream().map { it.votingId }
-                        .collect(Collectors.toMap({ it.toString() }, { it.toString() }))
+                    votings.filter {
+                        it.votingId.toString().contains(event.focusedOption.value.lowercase())
+                    }.map { it.votingId }.associate { it.toString() to it.toString() }
+
                 ).queue()
             }
         }
@@ -85,7 +88,10 @@ class VoteCommand(
         val game = gameRepository.findGameByGameId(selectedGameId.toInt())!!
         val voting = votingRepository.findVotingByVotingId(this.votingId)!!
         val discordUser =
-            CommandUtil.getOrCreateAndGetDiscordUser(discordUserRepository, event.user)
+            CommandUtil.getOrCreateAndGetDiscordUser(
+                discordUserRepository, event.user,
+                event.member!!
+            )
         if (voting.votingTime!!.before(Date())) {
             event.editMessage("Das Voting ist bereits abgelaufen").removeComponents().queue()
             return false

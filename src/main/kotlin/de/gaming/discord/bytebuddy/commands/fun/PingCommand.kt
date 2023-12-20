@@ -1,4 +1,4 @@
-package de.gaming.discord.bytebuddy.commands
+package de.gaming.discord.bytebuddy.commands.`fun`
 
 import io.viascom.discord.bot.aluna.bot.DiscordCommand
 import io.viascom.discord.bot.aluna.bot.Interaction

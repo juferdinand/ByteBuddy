@@ -1,4 +1,4 @@
-package de.gaming.discord.bytebuddy.commands
+package de.gaming.discord.bytebuddy.commands.voting
 
 import de.gaming.discord.bytebuddy.commands.util.CommandUtil
 import de.gaming.discord.bytebuddy.database.entity.Game
@@ -13,8 +13,6 @@ import io.viascom.discord.bot.aluna.bot.queueAndRegisterInteraction
 import io.viascom.discord.bot.aluna.model.EventRegisterType
 import io.viascom.discord.bot.aluna.util.removeComponents
 import io.viascom.discord.bot.aluna.util.replyStringChoices
-import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -25,7 +23,6 @@ import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu
-import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
@@ -66,13 +63,23 @@ class StartVotingCommand(
 
     override fun execute(event: SlashCommandInteractionEvent) {
         val discordUser =
-            CommandUtil.getOrCreateAndGetDiscordUser(discordUserRepository, event.user)
+            CommandUtil.getOrCreateAndGetDiscordUser(
+                discordUserRepository, event.user,
+                event.member!!
+            )
         targetChannel =
             event.getOption("kanal")?.asChannel?.asGuildMessageChannel() ?: event.channel
 
+        val votingReason = try {
+            VotingReason.valueOf(event.getOption("grund")!!.asString)
+        } catch (e: IllegalArgumentException) {
+            event.reply("Der Grund ${event.getOption("grund")!!.asString} ist nicht verfügbar")
+                .setEphemeral(true).queue()
+            return
+        }
         val voting = Voting()
         voting.votingName = event.getOption("name")!!.asString
-        voting.votingReason = VotingReason.valueOf(event.getOption("grund")!!.asString)
+        voting.votingReason = votingReason
         voting.targetChannelId = targetChannel!!.idLong
         voting.createdBy = discordUser
         voting.votingTime = CommandUtil.transformTime(
@@ -197,6 +204,8 @@ class StartVotingCommand(
         options["Neue Spiele"] = VotingReason.NEW_GAMES.name
         options["Heutige Spiele"] = VotingReason.TODAY_GAMES.name
 
-        event.replyStringChoices(options).queue()
+        event.replyStringChoices(options.filter {
+            it.key.lowercase().contains(event.focusedOption.value.lowercase())
+        }).queue()
     }
 }

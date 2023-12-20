@@ -58,4 +58,7 @@ public class Voting {
     @ManyToMany(targetEntity = Game.class)
     @JoinTable(name = "games_of_voting", joinColumns = @JoinColumn(name = "voting_id"), inverseJoinColumns = @JoinColumn(name = "game_id"))
     private Set<Game> gamesOfVoting = new HashSet<>();
+
+    @Column(name = "is_completed")
+    private boolean isCompleted = false;
 }

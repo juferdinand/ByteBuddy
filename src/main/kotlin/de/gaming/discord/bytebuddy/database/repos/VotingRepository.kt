@@ -14,6 +14,6 @@ interface VotingRepository : JpaRepository<Voting, Int>{
 
     @Query("SELECT v FROM Voting v JOIN FETCH v.gamesOfVoting JOIN FETCH v.createdBy WHERE v.votingTime > CURRENT_TIMESTAMP")
     fun findAllByVotingTimeIsNotInPast(): List<Voting>
-    @Query("SELECT v FROM Voting v JOIN FETCH v.gamesOfVoting JOIN FETCH v.createdBy WHERE v.votingTime < CURRENT_TIMESTAMP")
-    fun findAllByVotingTimeIsInPast(): List<Voting>
+    @Query("SELECT v FROM Voting v JOIN FETCH v.gamesOfVoting JOIN FETCH v.createdBy WHERE v.votingTime < CURRENT_TIMESTAMP AND v.isCompleted = false")
+    fun findAllByVotingTimeIsInPastAndIsCompletedFalse(): List<Voting>
 }
