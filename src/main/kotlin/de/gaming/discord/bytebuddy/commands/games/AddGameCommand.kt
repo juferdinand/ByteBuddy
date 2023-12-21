@@ -1,5 +1,7 @@
 package de.gaming.discord.bytebuddy.commands.games
 
+import de.gaming.discord.bytebuddy.commands.games.scrapper.steam.SteamStoreScrapper
+import de.gaming.discord.bytebuddy.commands.games.scrapper.epic.EpicgamesStoreScrapper
 import de.gaming.discord.bytebuddy.commands.util.CommandUtil
 import de.gaming.discord.bytebuddy.database.entity.Game
 import de.gaming.discord.bytebuddy.database.repos.DiscordUserRepository
@@ -16,44 +18,46 @@ class AddGameCommand(
 ) : DiscordCommand("add-game", "Füge das Spiel zu unserer Spieleliste hinzu") {
 
     override fun initCommandOptions() {
-        this.addOption(OptionType.STRING, "name", "Der Name vom Spiel", true)
         this.addOption(OptionType.STRING, "grund", "Der Grund warum das Spiel benötigt wird", true)
         this.addOption(OptionType.STRING, "store", "Die URL zum Spiel", true)
-        this.addOption(OptionType.STRING, "bild", "Die URL zum Bild des Spiels", true)
-        this.addOption(OptionType.STRING, "preis", "Der Preis des Spiels ohne €", true)
     }
 
     override fun execute(event: SlashCommandInteractionEvent) {
+
+        event.reply("Die Daten werden aus dem Store extrahiert...").setEphemeral(true).queue()
+        val gameUrl = event.getOption("store")?.asString!!
+        val storeScrapperResult = if (gameUrl.contains("epicgames")) {
+            EpicgamesStoreScrapper.scrap(gameUrl)
+        } else if (gameUrl.contains("steam")) {
+            SteamStoreScrapper.scrap(gameUrl)
+        } else {
+            event.hook.editOriginal("Der Store wird nicht unterstützt").queue()
+            return
+        }
 
         val discordUser = CommandUtil.getOrCreateAndGetDiscordUser(
             discordUserRepository,
             event.user,
             event.member!!
         )
+        event.hook.editOriginal("Das Spiel wird hinzugefügt...").queue()
         if (gameRepository.existsByGameName(event.getOption("name")?.asString)) {
-            event.reply("Das Spiel ${event.getOption("name")?.asString} ist bereits in der Liste").complete()
+            event.hook.editOriginal("Das Spiel ${event.getOption("name")?.asString} ist bereits in der Liste")
+                .queue()
             return
         }
-        checkIfUrlsAreValid(event)
+
         val game = Game()
-        game.gameName = event.getOption("name")?.asString
+        game.gameName = storeScrapperResult.title
         game.gameReason = event.getOption("grund")?.asString
         game.gameUrl = event.getOption("store")?.asString
-        game.gameImage = event.getOption("bild")?.asString
-        game.gamePrice = event.getOption("preis")?.asString?.replace(",",".")?.toBigDecimal()
+        game.gameImage = storeScrapperResult.imageUrl
+        game.gamePrice = storeScrapperResult.price
+        game.gameReleaseDateText = storeScrapperResult.releaseDateText
         game.createdBy = discordUser
         gameRepository.save(game)
-        event.reply("Das Spiel ${game.gameName} wurde erfolgreich hinzugefügt").complete()
-    }
-
-    private fun checkIfUrlsAreValid(event: SlashCommandInteractionEvent) {
-        val storeUrl = event.getOption("store")?.asString
-        val imageUrl = event.getOption("bild")?.asString
-        if (!storeUrl!!.startsWith("https://")) {
-            event.reply("Die Store URL ist nicht gültig").complete()
-        }
-        if (!imageUrl!!.startsWith("https://")) {
-            event.reply("Die Bild URL ist nicht gültig").complete()
-        }
+        event.hook.editOriginal(
+            "Das Spiel ${game.gameName} wurde erfolgreich hinzugefügt"
+        ).queue()
     }
 }

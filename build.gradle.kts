@@ -35,6 +35,14 @@ repositories {
 
 dependencies {
     compileOnly("org.projectlombok:lombok:1.18.30")
+    implementation("org.jsoup:jsoup:1.17.1")
+    implementation("org.seleniumhq.selenium:selenium-java:4.16.1")
+    implementation("io.github.bonigarcia:webdrivermanager:5.6.2")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-freemarker")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.5")
     implementation("org.springframework.boot:spring-boot-starter-actuator:3.1.5")
     implementation("io.viascom.discord.bot:aluna-spring-boot-starter:1.1.1")

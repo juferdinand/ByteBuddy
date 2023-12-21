@@ -39,6 +39,15 @@ class ProfileCommand(private val discordUserRepository: DiscordUserRepository) :
             return event.reply("Der User ${user.name} konnte nicht in der Datenbank gefunden werden")
                 .setEphemeral(true).queue()
         }
+        if (discordUser!!.games.isEmpty()) {
+            event.replyEmbeds(
+                createProfileEmbed(
+                    discordUser!!,
+                    discordUser!!.discordUserId == event.user.idLong
+                )
+            ).queue()
+            return
+        }
         event.replyEmbeds(
             createProfileEmbed(
                 discordUser!!,

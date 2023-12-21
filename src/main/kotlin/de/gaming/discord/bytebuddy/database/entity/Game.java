@@ -50,4 +50,7 @@ public class Game {
 
     @Column(name = "created_date")
     private Instant createdDate = Instant.now();
+
+    @Column(name = "game_release_date")
+    private String gameReleaseDateText;
 }
